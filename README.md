@@ -52,4 +52,4 @@ In other cases:
 
 ## After run
 
-If you are testing and don't want to wait for cron execution, you can exec into docker container and execute cron jobs manually to populate queues
+If you don't want to wait for cron execution, you can exec into docker container and execute cron jobs manually to populate queues
