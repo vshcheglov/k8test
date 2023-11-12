@@ -53,27 +53,26 @@ if (!$redis->connect($redisHost, $redisPort)) {
 $adaptiveSleepTime = 0;
 $queueName = "{$publisherData}_{$futureOffsetSeconds}_{$batchOffsetSeconds}";
 
-$dataLoadCallbacks = [
+$dataLoadFunctions = [
     PUBLISHER_DATA_EMAIL_CHECK => 'loadEmailCheckUser',
     PUBLISHER_DATA_EMAIL_NOTIFICATION => 'loadEmailNotificationUser'
 ];
-$dataLoadCallback = $dataLoadCallbacks[$publisherData];
+$dataLoadFunction = $dataLoadFunctions[$publisherData];
 
-
-$dataProcessCallbacks = [
+$dataProcessFunctions = [
     PUBLISHER_DATA_EMAIL_CHECK => 'processEmailCheckUser',
     PUBLISHER_DATA_EMAIL_NOTIFICATION => 'processEmailNotificationUser'
 ];
-$dataProcessCallback = $dataProcessCallbacks[$publisherData];
+$dataProcessFunction = $dataProcessFunctions[$publisherData];
 
 while (true) {
     try {
         $userId = $redis->lPop($queueName);
         if ($userId) {
-            $user = $dataLoadCallback($pdo, $userId);
+            $user = $dataLoadFunction($pdo, $userId);
 
             if ($user) {
-                $dataProcessCallback($pdo, $user, $sendFrom);
+                $dataProcessFunction($pdo, $user, $sendFrom);
             }
         } else {
             sleep(1);

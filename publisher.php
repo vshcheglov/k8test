@@ -64,12 +64,12 @@ if (!$redis->connect($redisHost, $redisPort)) {
 }
 
 try {
-    $dataLoadCallbacks = [
+    $dataLoadFunctions = [
         PUBLISHER_DATA_EMAIL_CHECK => 'loadEmailCheckData',
         PUBLISHER_DATA_EMAIL_NOTIFICATION => 'loadEmailNotificationData'
     ];
-    $dataLoadCallback = $dataLoadCallbacks[$publisherData];
-    $results = $dataLoadCallback($pdo, $startTime, $endTime);
+    $dataLoadFunction = $dataLoadFunctions[$publisherData];
+    $results = $dataLoadFunction($pdo, $startTime, $endTime);
     foreach ($results as $row) {
         $userId = $row['id'];
         $redis->rPush($queueName, $userId);
