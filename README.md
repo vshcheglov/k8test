@@ -39,7 +39,7 @@ Then fill it with test data
 
 If your db and redis installed locally
  - linux: `docker run --network="host" -d k8app` (not tested on linux but should work)
- - osx: `host.docker.internal` instead of `localhost` in `.env`, then `docker run -d k8app`
+ - osx: use `host.docker.internal` instead of `localhost` in `.env`, then `docker run -d k8app`
 
 In other cases:
  - just `docker run -d k8app`
