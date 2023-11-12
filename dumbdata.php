@@ -1,18 +1,10 @@
 <?php
 
-require_once __DIR__ . '/env.php';
+require_once __DIR__ . '/common.php';
 
-ini_set('memory_limit', -1);
-set_time_limit(0);
+removePhpMemoryTimeLimits();
 
-$host = getenv('DB_HOST');
-$database = getenv('DB_NAME');
-$user = getenv('DB_USER');
-$password = getenv('DB_PASS');
-
-$pdo = new PDO("mysql:host=$host;dbname=$database", $user, $password);
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$pdo->setAttribute(PDO::ATTR_TIMEOUT, 10);
+$pdo = loadDatabase();
 
 $insertValues = [];
 $batchSize = 5000;
@@ -24,7 +16,7 @@ for ($i = 0; $i < 15000000; $i++) {
     $randomSeconds = mt_rand(0, 30 * 24 * 60 * 60); // random monthly subscription time
     $validts = (mt_rand(0, 100) < 20) ? time() + ($addOrSubtract * $randomSeconds) : 0; // 20% subscribed
 
-    $confirmed = (mt_rand(0, 100) < 15) ? 1 : 0; // 15% confirmed
+    $confirmed = (mt_rand(0, 100) < 15) ? 1 : 0; // 15% confirmed email
     $checked = 0;
     $valid = 0;
 
