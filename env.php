@@ -1,15 +1,19 @@
 <?php
 
-function loadEnv($filePath)
+function loadEnv($filePath): void
 {
     if (!file_exists($filePath)) {
-        return false;
+        echoNl('.env is not exists');
+        sleep(1);
+        exit;
     }
 
     $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
     if ($lines === false) {
-        return false;
+        echoNl('.env is empty');
+        sleep(1);
+        exit;
     }
 
     foreach ($lines as $line) {
@@ -19,8 +23,6 @@ function loadEnv($filePath)
             putenv("$name=$value");
         }
     }
-
-    return true;
 }
 
 $envFilePath = __DIR__ . '/.env';
