@@ -21,6 +21,7 @@ function getFutureOffsetSeconds(): int
     $futureOffsetSeconds = (int) getenv('FUTURE_OFFSET_TIME');
     if (!$futureOffsetSeconds) {
         echoNl('Need to specify FUTURE_OFFSET_TIME environment variable');
+        sleep(1);
         exit;
     }
     return $futureOffsetSeconds;
@@ -31,9 +32,21 @@ function getBatchOffsetSeconds(): int
     $batchOffsetSeconds = (int) getenv('BATCH_OFFSET_TIME');
     if (!$batchOffsetSeconds) {
         echoNl('Need to specify BATCH_OFFSET_TIME environment variable');
+        sleep(1);
         exit;
     }
     return $batchOffsetSeconds;
+}
+
+function getEmailNotificationSender(): string
+{
+    $sendFrom = (string) getenv('SEND_FROM');
+    if (!$sendFrom) {
+        echoNl('Need to specify SEND_FROM environment variable');
+        sleep(1);
+        exit;
+    }
+    return $sendFrom;
 }
 
 function getPublisherData(): string
@@ -41,6 +54,7 @@ function getPublisherData(): string
     $publisherData = getenv('PUBLISHER_DATA');
     if (!in_array($publisherData, [PUBLISHER_DATA_EMAIL_NOTIFICATION, PUBLISHER_DATA_EMAIL_CHECK])) {
         echoNl('Need to specify PUBLISHER_DATA env var, values must be email_notification or email_check');
+        sleep(1);
         exit;
     }
     return $publisherData;

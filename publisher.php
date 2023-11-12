@@ -7,7 +7,6 @@ require_once __DIR__ . '/common.php';
 removePhpMemoryTimeLimits();
 
 $publisherData = getPublisherData();
-
 $futureOffsetSeconds = getFutureOffsetSeconds();
 $batchOffsetSeconds = getBatchOffsetSeconds();
 
