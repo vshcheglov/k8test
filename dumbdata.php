@@ -24,7 +24,7 @@ for ($i = 0; $i < 15000000; $i++) {
     $randomSeconds = mt_rand(0, 30 * 24 * 60 * 60); // random monthly subscription time
     $validts = (mt_rand(0, 100) < 20) ? time() + ($addOrSubtract * $randomSeconds) : 0; // 20% subscribed
 
-    $confirmed = (mt_rand(0, 100) < 15) ? 1 : 0; // 20% confirmed
+    $confirmed = (mt_rand(0, 100) < 15) ? 1 : 0; // 15% confirmed
     $checked = 0;
     $valid = 0;
 
