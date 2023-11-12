@@ -2,66 +2,24 @@
 
 $currentUnixTime = time();
 
-require_once __DIR__ . '/env.php';
+require_once __DIR__ . '/common.php';
 
-ini_set('memory_limit',-1);
-set_time_limit(0);
+removePhpMemoryTimeLimits();
 
-$host = getenv('DB_HOST');
-$database = getenv('DB_NAME');
-$user = getenv('DB_USER');
-$password = getenv('DB_PASS');
+$publisherData = getPublisherData();
 
-$redisHost = getenv('REDIS_HOST');
-$redisPort = getenv('REDIS_PORT');
+$futureOffsetSeconds = getFutureOffsetSeconds();
+$batchOffsetSeconds = getBatchOffsetSeconds();
 
-const PUBLISHER_DATA_EMAIL_NOTIFICATION = 'email_notification';
-const PUBLISHER_DATA_EMAIL_CHECK = 'email_check';
+$queueName = getQueueName();
+$lastExecutionTimeFilePath = __DIR__ . "/last/$queueName";
+$lastExecutionTime = readLastExecutionTime($lastExecutionTimeFilePath);
 
-$publisherData = getenv('PUBLISHER_DATA');
-if (!in_array($publisherData, [PUBLISHER_DATA_EMAIL_NOTIFICATION, PUBLISHER_DATA_EMAIL_CHECK])) {
-    echoNl('Need to specify PUBLISHER_DATA env var, values must be email_notification or email_check');
-    exit;
-}
+$batchStartTime = calculateBatchStartTime($currentUnixTime, $futureOffsetSeconds, $batchOffsetSeconds, $lastExecutionTime);
+$batchEndTime = $currentUnixTime + $futureOffsetSeconds + $batchOffsetSeconds;
 
-$batchOffsetSeconds = (int) getenv('BATCH_OFFSET_TIME');
-$futureOffsetSeconds = (int) getenv('FUTURE_OFFSET_TIME');
-
-if (!$batchOffsetSeconds || !$futureOffsetSeconds) {
-    echoNl('Need to specify BATCH_OFFSET_TIME and FUTURE_OFFSET_TIME env vars');
-    exit;
-}
-
-$queueName = "{$publisherData}_{$futureOffsetSeconds}_{$batchOffsetSeconds}";
-
-if (!is_dir(__DIR__ . '/flag')) {
-    mkdir(__DIR__ . '/flag', 0755);
-}
-$lastExecutionTimeFilePath = __DIR__ . "/flag/{$publisherData}_{$futureOffsetSeconds}_{$batchOffsetSeconds}";
-$lastTime = file_exists($lastExecutionTimeFilePath) ? file_get_contents($lastExecutionTimeFilePath) : false;
-
-$startTime = $currentUnixTime + $futureOffsetSeconds;
-if ($lastTime && is_numeric($lastTime)) {
-    $deltaTime = $currentUnixTime + $futureOffsetSeconds - (int)$lastTime;
-    $startTime = $deltaTime > $batchOffsetSeconds ? $startTime : (int)$lastTime;
-}
-
-$endTime = $currentUnixTime + $futureOffsetSeconds + $batchOffsetSeconds;
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$database", $user, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->setAttribute(PDO::ATTR_TIMEOUT, 10);
-} catch (PDOException $e) {
-    echoNl('Database connection error: ' . $e->getMessage());
-    exit;
-}
-
-$redis = new Redis();
-if (!$redis->connect($redisHost, $redisPort)) {
-    echoNl('Redis connection error');
-    exit;
-}
+$pdo = loadDatabase();
+$redis = loadRedis();
 
 try {
     $dataLoadFunctions = [
@@ -69,12 +27,12 @@ try {
         PUBLISHER_DATA_EMAIL_NOTIFICATION => 'loadEmailNotificationData'
     ];
     $dataLoadFunction = $dataLoadFunctions[$publisherData];
-    $results = $dataLoadFunction($pdo, $startTime, $endTime);
+    $results = $dataLoadFunction($pdo, $batchStartTime, $batchEndTime);
     foreach ($results as $row) {
         $userId = $row['id'];
         $redis->rPush($queueName, $userId);
     }
-    file_put_contents($lastExecutionTimeFilePath, $endTime);
+    saveLastExecutionTime($lastExecutionTimeFilePath, $batchEndTime);
 } catch (PDOException $e) {
     echoNl('Database error: ' . $e->getMessage());
 } catch (RedisException $e) {
@@ -99,7 +57,22 @@ function loadEmailNotificationData(\PDO $pdo, int $startTime, int $endTime): arr
     return $query->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function echoNl($message)
+function readLastExecutionTime(string $lastExecutionTimeFilePath): int|false
 {
-    echo $message . PHP_EOL;
+    return file_exists($lastExecutionTimeFilePath) ? (int) file_get_contents($lastExecutionTimeFilePath) : false;
+}
+
+function saveLastExecutionTime(string $lastExecutionTimeFilePath, int $batchEndTime): void
+{
+    file_put_contents($lastExecutionTimeFilePath, $batchEndTime);
+}
+
+function calculateBatchStartTime(int $currentUnixTime, int $futureOffsetSeconds, int $batchOffsetSeconds, int|false $lastExecutionTime): int
+{
+    $batchStartTime = $currentUnixTime + $futureOffsetSeconds;
+    if ($lastExecutionTime && is_numeric($lastExecutionTime)) {
+        $deltaTime = $currentUnixTime + $futureOffsetSeconds - (int)$lastExecutionTime;
+        $batchStartTime = $deltaTime > $batchOffsetSeconds ? $batchStartTime : (int)$lastExecutionTime;
+    }
+    return $batchStartTime;
 }
