@@ -49,3 +49,7 @@ In other cases:
 - Install cron jobs from cron.conf to your crontab
 - Install supervisor if not installed and add configuration like in supervisord.conf
 - Start supervisor tasks to run consumers
+
+## After run
+
+If you are testing and don't want to wait for cron execution, you can exec into docker container and execute cron jobs manually to populate queues
