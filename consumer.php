@@ -4,27 +4,18 @@ require_once __DIR__ . '/common.php';
 
 removePhpMemoryTimeLimits();
 
-$publisherData = getPublisherData();
+$mode = getMode();
 $futureOffsetSeconds = getFutureOffsetSeconds();
 $batchOffsetSeconds = getBatchOffsetSeconds();
-$emailNotificationSender = getEmailNotificationSender();
+$emailNotificationFrom = getEmailNotificationFrom();
 
 $pdo = loadDatabase();
 $redis = loadRedis();
 
 $queueName = getQueueName();
 
-$dataLoadFunctions = [
-    PUBLISHER_DATA_EMAIL_CHECK => 'loadEmailCheckUser',
-    PUBLISHER_DATA_EMAIL_NOTIFICATION => 'loadEmailNotificationUser'
-];
-$dataLoadFunction = $dataLoadFunctions[$publisherData];
-
-$dataProcessFunctions = [
-    PUBLISHER_DATA_EMAIL_CHECK => 'processEmailCheckUser',
-    PUBLISHER_DATA_EMAIL_NOTIFICATION => 'processEmailNotificationUser'
-];
-$dataProcessFunction = $dataProcessFunctions[$publisherData];
+$dataLoadFunction = getDataLoadFunction($mode);
+$dataProcessFunction = getDataProcessFunction($mode);
 
 while (true) {
     try {
@@ -34,7 +25,7 @@ while (true) {
             continue;
         }
         if ($user = $dataLoadFunction($pdo, $userId)) {
-            $dataProcessFunction($pdo, $user, $emailNotificationSender);
+            $dataProcessFunction($pdo, $user, $emailNotificationFrom);
         }
     } catch (PDOException $e) {
         echoNl('Database error: ' . $e->getMessage());
@@ -84,10 +75,27 @@ function saveEmailValidationToDb(\PDO $pdo, array $user, int $isEmailValid): voi
     ]);
 }
 
+function getDataLoadFunction(string $mode): callable
+{
+    $dataLoadFunctions = [
+        MODE_EMAIL_CHECK => 'loadEmailCheckUser',
+        MODE_EMAIL_NOTIFICATION => 'loadEmailNotificationUser'
+    ];
+    return $dataLoadFunctions[$mode];
+}
+
+function getDataProcessFunction(string $mode): callable
+{
+    $dataProcessFunctions = [
+        MODE_EMAIL_CHECK => 'processEmailCheckUser',
+        MODE_EMAIL_NOTIFICATION => 'processEmailNotificationUser'
+    ];
+    return $dataProcessFunctions[$mode];
+}
+
 function check_email(string $email): int
 {
-//    sleep(rand(1, 60));
-    sleep(1);
+    sleep(rand(1, 60));
     return rand(0, 1);
 }
 

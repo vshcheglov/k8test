@@ -6,7 +6,7 @@ require_once __DIR__ . '/common.php';
 
 removePhpMemoryTimeLimits();
 
-$publisherData = getPublisherData();
+$mode = getMode();
 $futureOffsetSeconds = getFutureOffsetSeconds();
 $batchOffsetSeconds = getBatchOffsetSeconds();
 
@@ -20,12 +20,9 @@ $batchEndTime = $currentUnixTime + $futureOffsetSeconds + $batchOffsetSeconds;
 $pdo = loadDatabase();
 $redis = loadRedis();
 
+$dataLoadFunction = getDataLoadFunction($mode);
+
 try {
-    $dataLoadFunctions = [
-        PUBLISHER_DATA_EMAIL_CHECK => 'loadEmailCheckData',
-        PUBLISHER_DATA_EMAIL_NOTIFICATION => 'loadEmailNotificationData'
-    ];
-    $dataLoadFunction = $dataLoadFunctions[$publisherData];
     $results = $dataLoadFunction($pdo, $batchStartTime, $batchEndTime);
     foreach ($results as $row) {
         $userId = $row['id'];
@@ -54,6 +51,15 @@ function loadEmailNotificationData(\PDO $pdo, int $startTime, int $endTime): arr
     $query = $pdo->prepare("SELECT * FROM users WHERE (confirmed = 1 OR valid = 1) AND validts BETWEEN :startTime AND :endTime ORDER BY validts ASC");
     $query->execute(['startTime' => $startTime, 'endTime' => $endTime]);
     return $query->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getDataLoadFunction(string $mode): callable
+{
+    $dataLoadFunctions = [
+        MODE_EMAIL_CHECK => 'loadEmailCheckData',
+        MODE_EMAIL_NOTIFICATION => 'loadEmailNotificationData'
+    ];
+    return $dataLoadFunctions[$mode];
 }
 
 function readLastExecutionTime(string $lastExecutionTimeFilePath): int|false

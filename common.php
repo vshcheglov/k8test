@@ -2,8 +2,8 @@
 
 require_once __DIR__ . '/env.php';
 
-const PUBLISHER_DATA_EMAIL_NOTIFICATION = 'email_notification';
-const PUBLISHER_DATA_EMAIL_CHECK = 'email_check';
+const MODE_EMAIL_NOTIFICATION = 'email_notification';
+const MODE_EMAIL_CHECK = 'email_check';
 
 function removePhpMemoryTimeLimits(): void
 {
@@ -13,14 +13,14 @@ function removePhpMemoryTimeLimits(): void
 
 function getQueueName(): string
 {
-    return getPublisherData() . '_' . getFutureOffsetSeconds() . '_' . getBatchOffsetSeconds();
+    return getMode() . '_' . getFutureOffsetSeconds() . '_' . getBatchOffsetSeconds();
 }
 
 function getFutureOffsetSeconds(): int
 {
-    $futureOffsetSeconds = (int) getenv('FUTURE_OFFSET_TIME');
+    $futureOffsetSeconds = (int) getenv('FUTURE_OFFSET_SECONDS');
     if (!$futureOffsetSeconds) {
-        echoNl('Need to specify FUTURE_OFFSET_TIME environment variable');
+        echoNl('Need to specify FUTURE_OFFSET_SECONDS environment variable');
         sleep(1);
         exit;
     }
@@ -29,35 +29,35 @@ function getFutureOffsetSeconds(): int
 
 function getBatchOffsetSeconds(): int
 {
-    $batchOffsetSeconds = (int) getenv('BATCH_OFFSET_TIME');
+    $batchOffsetSeconds = (int) getenv('BATCH_OFFSET_SECONDS');
     if (!$batchOffsetSeconds) {
-        echoNl('Need to specify BATCH_OFFSET_TIME environment variable');
+        echoNl('Need to specify BATCH_OFFSET_SECONDS environment variable');
         sleep(1);
         exit;
     }
     return $batchOffsetSeconds;
 }
 
-function getEmailNotificationSender(): string
+function getEmailNotificationFrom(): string
 {
-    $sendFrom = (string) getenv('SEND_FROM');
-    if (!$sendFrom) {
-        echoNl('Need to specify SEND_FROM environment variable');
+    $sendFrom = (string) getenv('EMAIL_NOTIFICATION_FROM');
+    if (getMode() === MODE_EMAIL_NOTIFICATION && !$sendFrom) {
+        echoNl('Need to specify EMAIL_NOTIFICATION_FROM environment variable');
         sleep(1);
         exit;
     }
     return $sendFrom;
 }
 
-function getPublisherData(): string
+function getMode(): string
 {
-    $publisherData = getenv('PUBLISHER_DATA');
-    if (!in_array($publisherData, [PUBLISHER_DATA_EMAIL_NOTIFICATION, PUBLISHER_DATA_EMAIL_CHECK])) {
-        echoNl('Need to specify PUBLISHER_DATA env var, values must be email_notification or email_check');
+    $type = getenv('MODE');
+    if (!in_array($type, [MODE_EMAIL_NOTIFICATION, MODE_EMAIL_CHECK])) {
+        echoNl('Need to specify MODE environment variable, values must be email_notification or email_check');
         sleep(1);
         exit;
     }
-    return $publisherData;
+    return $type;
 }
 
 function loadDatabase(): \PDO

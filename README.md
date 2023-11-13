@@ -1,8 +1,9 @@
 # k8 test task
 
 ## Prerequisites
-- mysql server v8.0.31
-- redis server v7.2.3
+- MySQL Server (tested on version 8.0.31)
+- Redis Server (tested on version 7.2.3)
+- Supervisord (tested on version 4.2.5) - optional, only required if you're running without Docker
 
 ## Configure
 Create `.env` file in app directory and fill with your settings
@@ -14,42 +15,43 @@ DB_USER=dbuser
 DB_PASS=dbpass
 REDIS_HOST=redishost
 REDIS_PORT=redisport
-SEND_FROM=service@example.net
-BATCH_OFFSET_TIME=3600
+BATCH_OFFSET_SECONDS=3600
+EMAIL_NOTIFICATION_FROM=service@example.net
 ```
 
-## Import test data
-If you want to test the app, you can create test mysql database and then import its schema
+## Importing test data
+If you want to test the application, you can create a test MySQL database and then import its schema:
 
 `mysql -u dbuser -p dbname < schema.sql`
 
-Then fill it with test data
+After that, populate it with test data:
 
 `php dumbdata.php`
 
-## Run the app
+## Running the Application
 
 ### Using docker
 
-#### Build docker container
+#### Building the Docker Container
 
 `docker build -t k8app .`
 
-#### Run docker container
+#### Running the Docker Container
 
-If your db and redis installed locally
- - linux: `docker run --network="host" -d k8app` (not tested on linux but should work)
- - osx: use `host.docker.internal` instead of `localhost` in `.env`, then `docker run -d k8app`
+If your MySQL and Redis are installed locally:
+ - Linux: `docker run --network="host" -d k8app` (not tested on linux but should work)
+ - MacOS: Use `host.docker.internal` instead of `localhost` in `.env`, then run `docker run -d k8app`
 
 In other cases:
- - just `docker run -d k8app`
+ - Simply run `docker run -d k8app`
 
 ### Manually
 
-- Install cron jobs from cron.conf to your crontab
-- Install supervisor if not installed and add configuration like in supervisord.conf
-- Start supervisor tasks to run consumers
+- Install cron jobs from `cron.conf` into your crontab.
+- Install Supervisor if it's not already installed.
+- Configure Supervisor as specified in supervisord.conf.
+- Start Supervisor tasks to run consumers.
 
 ## After run
 
-If you don't want to wait for cron execution, you can exec into docker container and execute cron jobs manually to populate queues
+If you don't want to wait for cron execution, you can execute cron jobs manually to populate queues by entering the Docker container and running the cron jobs.
