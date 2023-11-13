@@ -78,7 +78,7 @@ function calculateBatchStartTime(int $currentUnixTime, int $futureOffsetSeconds,
 {
     $batchStartTime = $currentUnixTime + $futureOffsetSeconds;
     if ($lastExecutionTime && is_numeric($lastExecutionTime)) {
-        $deltaTime = $currentUnixTime + $futureOffsetSeconds - (int)$lastExecutionTime;
+        $deltaTime = $currentUnixTime + $futureOffsetSeconds + $batchOffsetSeconds - (int)$lastExecutionTime;
         $batchStartTime = $deltaTime > $batchOffsetSeconds ? $batchStartTime : (int)$lastExecutionTime;
     }
     return $batchStartTime;
