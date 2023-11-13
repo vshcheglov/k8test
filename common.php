@@ -120,10 +120,10 @@ function loadRedis(): \Redis
     }
 }
 
-function sleepIfExecutorConsumer(int $seconds = 30)
+function sleepIfExecutorConsumer(int $seconds = 30): void
 {
     if (getExecutor() === EXECUTOR_CONSUMER) {
-        sleep(60);
+        sleep($seconds);
     }
 }
 

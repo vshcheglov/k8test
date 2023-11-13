@@ -44,7 +44,7 @@ while (true) {
     }
 }
 
-function adaptiveSleep(&$seconds)
+function adaptiveSleep(&$seconds): void
 {
     $sleepSeconds = $seconds < 60 ? $seconds + 5 : $seconds;
     sleep($sleepSeconds);
