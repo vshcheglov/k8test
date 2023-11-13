@@ -6,6 +6,8 @@
 - Supervisord (tested on version 4.2.5) - optional, only required if you're running without Docker
 
 ## Configure
+
+### Environment
 Create `.env` file in app directory and fill with your settings
 
 ```
@@ -18,6 +20,13 @@ REDIS_PORT=redisport
 BATCH_OFFSET_SECONDS=3600
 EMAIL_NOTIFICATION_FROM=service@example.net
 ```
+
+### MySQL
+
+Depending on the number of consumers, you should adjust the `max_connections` setting in your MySQL configuration.
+
+In the current `supervisord.conf`, there are 180 consumer processes.
+Therefore, you need to increase your `max_connections` by 180.
 
 ## Importing test data
 If you want to test the application, you can create a test MySQL database and then import its schema:
