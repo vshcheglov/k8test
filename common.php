@@ -129,5 +129,7 @@ function sleepIfExecutorConsumer(int $seconds = 30)
 
 function echoNl(string $message): void
 {
-    echo $message . PHP_EOL;
+    $currentTimeUTC = gmdate('Y-m-d H:i:s');
+    $messageWithTime = '[' . $currentTimeUTC . '] ' . $message;
+    echo $messageWithTime . PHP_EOL;
 }
