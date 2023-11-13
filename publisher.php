@@ -6,6 +6,8 @@ require_once __DIR__ . '/common.php';
 
 removePhpMemoryTimeLimits();
 
+setExecutor(EXECUTOR_PUBLISHER);
+
 $mode = getMode();
 $futureOffsetSeconds = getFutureOffsetSeconds();
 $batchOffsetSeconds = getBatchOffsetSeconds();

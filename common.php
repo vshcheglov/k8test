@@ -5,6 +5,23 @@ require_once __DIR__ . '/env.php';
 const MODE_EMAIL_NOTIFICATION = 'email_notification';
 const MODE_EMAIL_CHECK = 'email_check';
 
+const EXECUTOR_PUBLISHER = 'publisher';
+const EXECUTOR_CONSUMER = 'consumer';
+
+$k8executor = null;
+
+function setExecutor(string $name): void
+{
+    global $k8executor;
+    $k8executor = $name;
+}
+
+function getExecutor(): string
+{
+    global $k8executor;
+    return $k8executor;
+}
+
 function removePhpMemoryTimeLimits(): void
 {
     ini_set('memory_limit',-1);
@@ -73,11 +90,11 @@ function loadDatabase(): \PDO
         return $pdo;
     } catch (PDOException $e) {
         echoNl('Database error: ' . $e->getMessage());
-        sleep(1);
+        sleepIfExecutorConsumer();
         exit;
     } catch (\Throwable $e) {
         echoNl('Unknown error: ' . $e->getMessage());
-        sleep(1);
+        sleepIfExecutorConsumer();
         exit;
     }
 }
@@ -94,12 +111,19 @@ function loadRedis(): \Redis
         throw new RedisException('failed to connect');
     } catch (RedisException $e) {
         echoNl('Redis error: ' . $e->getMessage());
-        sleep(1);
+        sleepIfExecutorConsumer();
         exit;
     } catch (\Throwable $e) {
         echoNl('Unknown error: ' . $e->getMessage());
-        sleep(1);
+        sleepIfExecutorConsumer();
         exit;
+    }
+}
+
+function sleepIfExecutorConsumer(int $seconds = 30)
+{
+    if (getExecutor() === EXECUTOR_CONSUMER) {
+        sleep(60);
     }
 }
 

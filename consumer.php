@@ -4,6 +4,8 @@ require_once __DIR__ . '/common.php';
 
 removePhpMemoryTimeLimits();
 
+setExecutor(EXECUTOR_CONSUMER);
+
 $mode = getMode();
 $futureOffsetSeconds = getFutureOffsetSeconds();
 $batchOffsetSeconds = getBatchOffsetSeconds();
@@ -17,6 +19,8 @@ $queueName = getQueueName();
 $dataLoadFunction = getDataLoadFunction($mode);
 $dataProcessFunction = getDataProcessFunction($mode);
 
+$sleepSeconds = 0;
+
 while (true) {
     try {
         $userId = $redis->lPop($queueName);
@@ -27,16 +31,23 @@ while (true) {
         if ($user = $dataLoadFunction($pdo, $userId)) {
             $dataProcessFunction($pdo, $user, $emailNotificationFrom);
         }
+        $sleepSeconds = 0;
     } catch (PDOException $e) {
         echoNl('Database error: ' . $e->getMessage());
-        sleep(1);
+        adaptiveSleep($sleepSeconds);
     } catch (RedisException $e) {
         echoNl('Redis error: ' . $e->getMessage());
-        sleep(1);
+        adaptiveSleep($sleepSeconds);
     } catch (\Throwable $e) {
         echoNl('Unknown error: ' . $e->getMessage());
-        sleep(1);
+        adaptiveSleep($sleepSeconds);
     }
+}
+
+function adaptiveSleep(&$seconds)
+{
+    $sleepSeconds = $seconds < 60 ? $seconds + 5 : $seconds;
+    sleep($sleepSeconds);
 }
 
 function loadEmailCheckUser(\PDO $pdo, $userId): array
