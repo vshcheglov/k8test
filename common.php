@@ -103,7 +103,7 @@ function loadRedis(): \Redis
     }
 }
 
-function echoNl($message): void
+function echoNl(string $message): void
 {
     echo $message . PHP_EOL;
 }
