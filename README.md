@@ -28,6 +28,11 @@ Depending on the number of consumers, you should adjust the `max_connections` se
 In the current `supervisord.conf`, there are 180 consumer processes.
 Therefore, you need to increase your `max_connections` by 180.
 
+## Cron
+
+If you are testing and prefer not to wait for cron execution, you can manually run cron jobs to populate the queues by entering the Docker container after it run and executing the cron jobs.
+Alternatively, you can adjust the `cron.conf` to run cron jobs every minute.
+
 ## Importing test data
 If you want to test the application, you can create a test MySQL database and then import its schema:
 
@@ -60,7 +65,3 @@ In other cases:
 - Install Supervisor if it's not already installed.
 - Configure Supervisor as specified in supervisord.conf.
 - Start Supervisor tasks to run consumers.
-
-## After run
-
-If you don't want to wait for cron execution, you can execute cron jobs manually to populate queues by entering the Docker container and running the cron jobs.
