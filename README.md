@@ -63,5 +63,5 @@ In other cases:
 
 - Install cron jobs from `cron.conf` into your crontab.
 - Install Supervisor if it's not already installed.
-- Configure Supervisor as specified in supervisord.conf.
+- Configure Supervisor as specified in `supervisord.conf`.
 - Start Supervisor tasks to run consumers.
